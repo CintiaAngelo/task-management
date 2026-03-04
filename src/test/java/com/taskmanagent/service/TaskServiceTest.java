@@ -341,6 +341,64 @@ class TaskServiceTest {
     class AtualizarTarefa {
 
         @Test
+        @DisplayName("deve ignorar validacao quando due_date esta em branco na atualizacao")
+        void deveIgnorarValidacaoQuandoDueDateEmBrancoNaAtualizacao() {
+            UpdateTaskRequest request = UpdateTaskRequest.builder()
+                    .title("Título")
+                    .dueDate("")
+                    .build();
+
+            Task tarefaAtualizada = Task.builder()
+                    .id(idTarefaPadrao)
+                    .title("Título")
+                    .status(tarefaPadrao.getStatus())
+                    .priority(tarefaPadrao.getPriority())
+                    .createdAt(tarefaPadrao.getCreatedAt())
+                    .updatedAt(LocalDateTime.now().toString())
+                    .build();
+
+            when(taskRepository.buscarPorId(idTarefaPadrao)).thenReturn(Optional.of(tarefaPadrao));
+            when(taskRepository.salvar(any(Task.class))).thenReturn(tarefaAtualizada);
+
+            assertThatCode(() -> taskService.atualizarTarefa(idTarefaPadrao, request))
+                    .doesNotThrowAnyException();
+        }
+
+        @Test
+        @DisplayName("deve atualizar todos os campos quando todos são informados")
+        void deveAtualizarTodosOsCamposQuandoTodosInformados() {
+            UpdateTaskRequest request = UpdateTaskRequest.builder()
+                    .title("Título Completo")
+                    .description("Descrição atualizada")
+                    .status(TaskStatus.IN_PROGRESS)
+                    .priority(TaskPriority.LOW)
+                    .dueDate(LocalDate.now().plusDays(10).toString())
+                    .build();
+
+            Task tarefaAtualizada = Task.builder()
+                    .id(idTarefaPadrao)
+                    .title("Título Completo")
+                    .description("Descrição atualizada")
+                    .status(TaskStatus.IN_PROGRESS.getValue())
+                    .priority(TaskPriority.LOW.getValue())
+                    .dueDate(LocalDate.now().plusDays(10).toString())
+                    .createdAt(tarefaPadrao.getCreatedAt())
+                    .updatedAt(LocalDateTime.now().toString())
+                    .build();
+
+            when(taskRepository.buscarPorId(idTarefaPadrao)).thenReturn(Optional.of(tarefaPadrao));
+            when(taskRepository.salvar(any(Task.class))).thenReturn(tarefaAtualizada);
+
+            TaskResponse response = taskService.atualizarTarefa(idTarefaPadrao, request);
+
+            assertThat(response.getTitle()).isEqualTo("Título Completo");
+            assertThat(response.getDescription()).isEqualTo("Descrição atualizada");
+            assertThat(response.getStatus()).isEqualTo(TaskStatus.IN_PROGRESS.getValue());
+            assertThat(response.getPriority()).isEqualTo(TaskPriority.LOW.getValue());
+            assertThat(response.getDueDate()).isEqualTo(LocalDate.now().plusDays(10).toString());
+        }
+
+        @Test
         @DisplayName("deve atualizar título da tarefa com sucesso")
         void deveAtualizarTituloDaTarefaComSucesso() {
             UpdateTaskRequest request = UpdateTaskRequest.builder()
