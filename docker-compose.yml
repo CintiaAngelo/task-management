@@ -13,11 +13,11 @@ services:
       timeout: 3s
       retries: 10
 
-  todo-api:
+  task-management-api:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: taskmanagement
+    container_name: task-management
     ports:
       - "8080:8080"
     environment:

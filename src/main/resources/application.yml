@@ -1,6 +1,8 @@
 spring:
   application:
     name: task-management
+  jackson:
+    time-zone: America/Sao_Paulo
 
 server:
   port: 8080
