@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  dynamodb-local:
+    image: amazon/dynamodb-local:latest
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    command: ["-jar", "DynamoDBLocal.jar", "-sharedDb", "-inMemory"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8000 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  todo-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskmanagement
+    ports:
+      - "8080:8080"
+    environment:
+      AWS_DYNAMODB_ENDPOINT: http://dynamodb-local:8000
+      AWS_DYNAMODB_REGION: us-east-1
+      AWS_DYNAMODB_ACCESS_KEY: local
+      AWS_DYNAMODB_SECRET_KEY: local
+      AWS_DYNAMODB_TABLE_NAME: tasks
+    depends_on:
+      dynamodb-local:
+        condition: service_healthy
+    restart: on-failure
+
+networks:
+  default:
+    name: task-network
